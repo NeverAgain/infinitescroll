@@ -2,7 +2,8 @@
   $.fn.infinitescroll = function(options) {
     var states = {
       curPage: 1,
-      processing: false
+      processing: false,
+      lastPage: false,
     }
 
     var options = $.extend({
@@ -20,7 +21,7 @@
       var scrollHeight = $(e.target).scrollTop()
       var height = $(e.target).height()
 
-      if (height - scrollHeight < options.thresholdPx && !states.processing ) {
+      if (height - scrollHeight < options.thresholdPx && !states.processing && !states.lastPage) {
         states.curPage = states.curPage + 1
         $.ajax({
           url: options.url,
@@ -32,8 +33,13 @@
           },
           complete: function() {
             states.processing = false
+
           },
-          success: options.callback
+          success: [function(data, textStatus, jqXHR) {
+            if (data.length == 0) {
+              states.lastPage = true
+            }
+          }, options.callback]
         })
       }
     })
